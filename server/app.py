@@ -20,27 +20,17 @@ def clear_session():
 
 @app.route('/articles/<int:id>')
 def show_article(id):
-    # Set initial value to 0 if 'page_views' not in session
-    session['page_views'] = session.get('page_views', 0)
-    
-    # Increment the value of session['page_views'] by 1
+    session['page_views'] = 0 if not session.get('page_views') else session.get('page_views')
     session['page_views'] += 1
-    
-    # Check if the user has viewed 3 or fewer pages
+
     if session['page_views'] <= 3:
-        # Fetch the article data based on the provided ID
-        article = Article.query.filter_by(id=id).first()
-        
-        # Check if the article exists
-        if article:
-            # Render a JSON response with the article data
-            return jsonify({'article':article.to_dict()})
-        else:
-            # If the article with the provided ID does not exist, return a 404 Not Found response
-            return {'message': '404: Article not found'}, 404
-    else:
-        # If the user has viewed more than 3 pages, render a JSON response with an error message
-        return jsonify({'message': 'Maximum pageview limit reached'}), 401
+
+        article = Article.query.filter(Article.id == id).first()
+        article_json = jsonify(article.to_dict())
+
+        return make_response(article_json, 200)
+
+    return {'message': 'Maximum pageview limit reached'}, 401
 
 if __name__ == '__main__':
     app.run(port=5555)
